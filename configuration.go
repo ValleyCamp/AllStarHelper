@@ -6,9 +6,14 @@ import (
 )
 
 type Configuration struct {
+	Settings      AppSettings         `json:"settings"`
 	USGSRiver     USGSRiverConfig     `json:"usgsriver"`
 	WXUnderground WXUndergroundConfig `json:"wxunder"`
 	WeatherMoss   WeatherMossConfig   `json:"weathermoss"`
+}
+
+type AppSettings struct {
+	RelativeOutputDir string `json:"relative_outputdir"`
 }
 
 type USGSRiverConfig struct {

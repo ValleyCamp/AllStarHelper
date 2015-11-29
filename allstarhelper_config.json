@@ -1,4 +1,8 @@
 {
+  "settings": {
+    "relative_outputdir": "output"
+  },
+
   "usgsriver": {
     "config": {
 
