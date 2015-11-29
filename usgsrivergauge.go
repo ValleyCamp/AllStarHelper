@@ -22,13 +22,13 @@ const gaugeUrl = "http://waterdata.usgs.gov/wa/nwis/uv?cb_all_00060_00065=on&cb_
 func (gauge *USGSGaugeConf) Handle(configuration *Configuration) {
 	resp, err := http.Get(fmt.Sprintf("%s%d", gaugeUrl, gauge.Id))
 	if err != nil {
-		jww.CRITICAL.Println("Error fetching gauge data: ", err)
+		jww.CRITICAL.Println("Error fetching data for gauge", gauge.Id, ". Error was: ", err)
 		return
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		jww.CRITICAL.Println("Error reading response body: ", err)
+		jww.CRITICAL.Println("Error reading response body for gauge", gauge.Id, ". Error was: ", err)
 		return
 	}
 
