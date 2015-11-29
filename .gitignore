@@ -2,7 +2,7 @@
 allstarhelper
 
 allstarhelper.log
-output/
+allstarhelper_output/
 
 # Compiled Object files, Static and Dynamic libs (Shared Objects)
 *.o

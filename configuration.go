@@ -17,7 +17,8 @@ type AppSettings struct {
 }
 
 type USGSRiverConfig struct {
-	Gauges []USGSGaugeConf `json:"gauges"`
+	Gauges       []USGSGaugeConf `json:"gauges"`
+	CmdCodeAbout string          `json:"cmdCodeAbout"`
 }
 
 type USGSGaugeConf struct {
@@ -27,6 +28,15 @@ type USGSGaugeConf struct {
 }
 
 type WXUndergroundConfig struct {
+	ApiKey       string                     `json:"api_key"`
+	CmdCodeAbout string                     `json:"cmdCodeAbout"`
+	Stations     []WXUndergroundStationConf `json:"stations"`
+}
+
+type WXUndergroundStationConf struct {
+	Id           string `json:"id"`
+	FriendlyName string `json:"frinedlyName"`
+	CmdCode      string `json:"cmdCode"`
 }
 
 type WeatherMossConfig struct {

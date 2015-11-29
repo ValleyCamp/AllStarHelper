@@ -1,35 +1,32 @@
 {
   "settings": {
-    "relative_outputdir": "output"
+    "relative_outputdir": "allstarhelper_output"
   },
 
   "usgsriver": {
-    "config": {
-
-    },
+    "cmdCodeAbout":"*960",
     "gauges": [
-      {"id": 12141300, "friendlyName":"Middle Fork near Valley Camp", "cmdCode":"*961" },
-      {"id": 12143600, "friendlyName":"South Fork below Twin Falls", "cmdCode":"*962" },
-      {"id": 12144000, "friendlyName":"South Fork at North Bend", "cmdCode":"*963" },
-      {"id": 12142000, "friendlyName":"North Fork near Calligan", "cmdCode":"*964" },
-      {"id": 12144500, "friendlyName":"Snoqualamie River below the Falls", "cmdCode":"*965" },
-      {"id": 12149000, "friendlyName":"Snoqualamie River near Carnation", "cmdCode":"*966" },
-      {"id": 12143400, "friendlyName":"South Fork near Garcia", "cmdCode":"*967" }
+      {"id": 12141300, "friendlyName":"Middle Fork near Valley Camp", "cmdCode":"*961"},
+      {"id": 12143600, "friendlyName":"South Fork below Twin Falls", "cmdCode":"*962"},
+      {"id": 12144000, "friendlyName":"South Fork at North Bend", "cmdCode":"*963"},
+      {"id": 12142000, "friendlyName":"North Fork near Calligan", "cmdCode":"*964"},
+      {"id": 12144500, "friendlyName":"Snoqualamie River below the Falls", "cmdCode":"*965"},
+      {"id": 12149000, "friendlyName":"Snoqualamie River near Carnation", "cmdCode":"*966"},
+      {"id": 12143400, "friendlyName":"South Fork near Garcia", "cmdCode":"*967"}
     ]
   },
 
   "wxunder": {
-    "config": {
-      "api_key": "KEY GOES HERE"
-    },
+    "api_key": "PUT YOUR WUNDERGROUND API KEY HERE",
+    "cmdCodeAbout":"*920",
     "stations": [
-
+      {"id": "KWANORTH35", "friendlyName":"Valley Camp", "cmdCode":"*921"}
     ]
   },
 
   "weathermoss": {
-    "config": {
-      
+    "settings": {
+      "cmdCodeAbout":""
     }
   }
 }
