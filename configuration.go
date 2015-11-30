@@ -35,7 +35,7 @@ type WXUndergroundConfig struct {
 
 type WXUndergroundStationConf struct {
 	Id           string `json:"id"`
-	FriendlyName string `json:"frinedlyName"`
+	FriendlyName string `json:"friendlyName"`
 	CmdCode      string `json:"cmdCode"`
 }
 
