@@ -1,8 +1,11 @@
 package main
 
 import (
+	"fmt"
 	jww "github.com/spf13/jwalterweatherman"
+	"io/ioutil"
 	"os"
+	"strconv"
 )
 
 func main() {
@@ -28,7 +31,9 @@ func main() {
 	for _, gaugeConf := range appconf.USGSRiver.Gauges {
 		jww.DEBUG.Println("Dispatching Handler gauge for conf:", gaugeConf)
 		go func(curConf USGSGaugeConf) {
-			handleGauge(&curConf, &appconf) // Not copying appConf as we never change it... TODO: Make actually thread safe.
+			gaugeId := strconv.Itoa(curConf.Id)
+			gaugeRes := getTextForGauge(&curConf, &appconf) // Not copying appConf as we never change it... TODO: Make actually thread safe.
+			writeOutputTextFile(appconf.Settings.RelativeOutputDir, gaugeId, gaugeRes)
 			gaugeDone <- true
 		}(gaugeConf)
 	}
@@ -38,5 +43,17 @@ func main() {
 		<-gaugeDone
 	}
 
-	jww.INFO.Println("Done. Exiting!")
+	jww.INFO.Println("Done creating all files, exiting!")
+}
+
+// writeOutputFile writes {path}/{id}.txt with the contents of outStr, overwriting any existing file.
+// Although this is being called from a goroutine we don't need ot synchronize as we should never be trying to write
+// out to the same file from multiple routines.
+func writeOutputTextFile(path string, id string, outStr string) {
+	outPath := fmt.Sprintf("%s/%s.txt", path, id)
+	jww.DEBUG.Println("Writing file", outPath)
+	err := ioutil.WriteFile(outPath, []byte(outStr), 0644)
+	if err != nil {
+		jww.CRITICAL.Println("Could not write to output file for id:", id)
+	}
 }

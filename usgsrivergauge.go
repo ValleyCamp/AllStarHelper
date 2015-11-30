@@ -17,19 +17,20 @@ type USGSGaugeDataRow struct {
 // The data source URL. Take this, append the gaugeID, and that's the URL to get gauge data.
 const gaugeUrl = "http://waterdata.usgs.gov/wa/nwis/uv?cb_all_00060_00065=on&cb_00060=on&cb_00065=on&format=rdb&period=1&site_no="
 
-// Handle
-func handleGauge(gauge *USGSGaugeConf, configuration *Configuration) {
+// getTextForGauge MUST return a text string, which is what will be read aloud as the text for this gauge.
+// It may be an error message or the actual result string, but it must be able to be read by the speech synthesizer.
+func getTextForGauge(gauge *USGSGaugeConf, configuration *Configuration) string {
 	// Make the HTTP request
 	resp, err := http.Get(fmt.Sprintf("%s%d", gaugeUrl, gauge.Id))
 	if err != nil {
 		jww.CRITICAL.Println("Error fetching data for gauge", gauge.Id, ". Error was: ", err)
-		return
+		return fmt.Sprintf("Unable to fetch data for the gauging station on the %s.", gauge.FriendlyName)
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		jww.CRITICAL.Println("Error reading response body for gauge", gauge.Id, ". Error was: ", err)
-		return
+		return fmt.Sprintf("Unable to read data for the gauging station on the %s.", gauge.FriendlyName)
 	}
 
 	// Get the text file returned by the server in a line-by-line format we can look through.
@@ -74,7 +75,7 @@ func handleGauge(gauge *USGSGaugeConf, configuration *Configuration) {
 	// Sanity check to make sure valid columns found
 	if datetimeCol == -1 || cfpsCol == -1 || gaugeHeightCol == -1 {
 		jww.CRITICAL.Println("Gauge", gauge.Id, "could not find valid data on any row... Aborting for this gauge.")
-		return
+		return fmt.Sprintf("Could not recieve valid data from the gauging station on the %s.", gauge.FriendlyName)
 	}
 
 	// Now that we know which columns we're looking for yank the data out of there.
@@ -82,7 +83,7 @@ func handleGauge(gauge *USGSGaugeConf, configuration *Configuration) {
 	t, err := time.Parse("2006-01-02 15:04", splitLastRow[datetimeCol])
 	if err != nil {
 		jww.CRITICAL.Println("Gauge", gauge.Id, "could not parse time, aborting for gauge. Error was: ", err)
-		return
+		return fmt.Sprintf("Could not recieve valid data from the gauging station on the %s.", gauge.FriendlyName)
 	}
 
 	// Format our final output TXT!
@@ -90,13 +91,7 @@ func handleGauge(gauge *USGSGaugeConf, configuration *Configuration) {
 	outStr := fmt.Sprintf("At %s the gauging station on the %s reported %s cubic feet per second, at a height of %s feet.", timeStr, gauge.FriendlyName, splitLastRow[cfpsCol], splitLastRow[gaugeHeightCol])
 	jww.DEBUG.Println("Gauge", gauge.Id, "generated text: ", outStr)
 
-	// Write out our result to {OUTPUTDIR}/{GAUGE_ID}.txt
-	filename := fmt.Sprintf("%d.txt", gauge.Id)
-	err = ioutil.WriteFile(fmt.Sprintf("%s/%s", configuration.Settings.RelativeOutputDir, filename), []byte(outStr), 0644)
-	if err != nil {
-		jww.CRITICAL.Println("Gauge", gauge.Id, "could not write to output file.")
-		return
-	}
+	return outStr
 }
 
 /*
