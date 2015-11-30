@@ -5,7 +5,6 @@ import (
 	jww "github.com/spf13/jwalterweatherman"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 )
@@ -20,6 +19,7 @@ const gaugeUrl = "http://waterdata.usgs.gov/wa/nwis/uv?cb_all_00060_00065=on&cb_
 
 // Handle
 func handleGauge(gauge *USGSGaugeConf, configuration *Configuration) {
+	// Make the HTTP request
 	resp, err := http.Get(fmt.Sprintf("%s%d", gaugeUrl, gauge.Id))
 	if err != nil {
 		jww.CRITICAL.Println("Error fetching data for gauge", gauge.Id, ". Error was: ", err)
@@ -32,10 +32,11 @@ func handleGauge(gauge *USGSGaugeConf, configuration *Configuration) {
 		return
 	}
 
+	// Get the text file returned by the server in a line-by-line format we can look through.
 	bodyTxt := string(body)
 	bodyLines := strings.Split(bodyTxt, "\n")
 
-	// Run through the whole file by lines. For now we're just going to keep going until we get the very last row.
+	// Run through the whole file by lines. For now we're just going to keep going until we get the very last row. (The only data we care about is the most recent)
 	headerRow := ""
 	lastRow := ""
 	for _, rowData := range bodyLines {
@@ -49,7 +50,7 @@ func handleGauge(gauge *USGSGaugeConf, configuration *Configuration) {
 		}
 	}
 
-	// Now we find out which columns in the tab-delimited file are the ones we want.
+	// Now we find out which columns in the tab-delimited file are the ones we want by parsing the header row
 	datetimeCol, cfpsCol, gaugeHeightCol := -1, -1, -1
 	headers := strings.Split(headerRow, "\t")
 	for index, header := range headers {
@@ -57,6 +58,8 @@ func handleGauge(gauge *USGSGaugeConf, configuration *Configuration) {
 			datetimeCol = index
 		}
 
+		// this column header wasn't datetime, and we know that any column we're interested in will have a _ in it,
+		// so we'll split that first, ignoring any columns that might not be what we want.
 		headerSplit := strings.Split(header, "_")
 		if len(headerSplit) > 1 {
 			switch headerSplit[len(headerSplit)-1] {
@@ -68,29 +71,27 @@ func handleGauge(gauge *USGSGaugeConf, configuration *Configuration) {
 		}
 	}
 
+	// Sanity check to make sure valid columns found
 	if datetimeCol == -1 || cfpsCol == -1 || gaugeHeightCol == -1 {
 		jww.CRITICAL.Println("Gauge", gauge.Id, "could not find valid data on any row... Aborting for this gauge.")
 		return
 	}
 
+	// Now that we know which columns we're looking for yank the data out of there.
 	splitLastRow := strings.Split(lastRow, "\t")
 	t, err := time.Parse("2006-01-02 15:04", splitLastRow[datetimeCol])
 	if err != nil {
 		jww.CRITICAL.Println("Gauge", gauge.Id, "could not parse time, aborting for gauge. Error was: ", err)
 		return
 	}
-	timeStr := t.Format("January 02 at 03:04 PM")
 
+	// Format our final output TXT!
+	timeStr := t.Format("January 02 at 03:04 PM") // Define what we want our output time string to look like
 	outStr := fmt.Sprintf("At %s the gauging station on the %s reported %s cubic feet per second, at a height of %s feet.", timeStr, gauge.FriendlyName, splitLastRow[cfpsCol], splitLastRow[gaugeHeightCol])
+	jww.DEBUG.Println("Gauge", gauge.Id, "generated text: ", outStr)
 
+	// Write out our result to {OUTPUTDIR}/{GAUGE_ID}.txt
 	filename := fmt.Sprintf("%d.txt", gauge.Id)
-
-	err = os.MkdirAll(configuration.Settings.RelativeOutputDir, 0711)
-	if err != nil {
-		jww.CRITICAL.Println("Gauge", gauge.Id, " could not create output directory")
-		return
-	}
-
 	err = ioutil.WriteFile(fmt.Sprintf("%s/%s", configuration.Settings.RelativeOutputDir, filename), []byte(outStr), 0644)
 	if err != nil {
 		jww.CRITICAL.Println("Gauge", gauge.Id, "could not write to output file.")

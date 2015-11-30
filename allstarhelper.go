@@ -16,6 +16,14 @@ func main() {
 		os.Exit(0)
 	}
 
+	// Before we do anything make sure output directory exists
+	err = os.MkdirAll(appconf.Settings.RelativeOutputDir, 0711)
+	if err != nil {
+		jww.FATAL.Println("could not create output directory. Permissions issue?")
+		os.Exit(0)
+	}
+
+	// Dispatch a thread to handle each of the gauges from the conf file
 	gaugeDone := make(chan bool)
 	for _, gaugeConf := range appconf.USGSRiver.Gauges {
 		jww.DEBUG.Println("Dispatching Handler gauge for conf:", gaugeConf)
