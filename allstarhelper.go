@@ -17,8 +17,10 @@ func main() {
 	}
 
 	for _, gaugeConf := range conf.USGSRiver.Gauges {
-		// {"id": 12141300, "friendlyName":"Middle Fork near Valley Camp", "cmdCode":"*961" },
+		jww.INFO.Println("Handling gauge for conf:", gaugeConf)
 		gaugeConf.Handle(&conf)
 	}
 
+
+	jww.INFO.Println("Done. Exiting!")
 }
