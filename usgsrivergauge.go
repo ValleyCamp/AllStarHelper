@@ -19,7 +19,7 @@ type USGSGaugeDataRow struct {
 const gaugeUrl = "http://waterdata.usgs.gov/wa/nwis/uv?cb_all_00060_00065=on&cb_00060=on&cb_00065=on&format=rdb&period=1&site_no="
 
 // Handle
-func (gauge *USGSGaugeConf) Handle(configuration *Configuration) {
+func handleGauge(gauge *USGSGaugeConf, configuration *Configuration) {
 	resp, err := http.Get(fmt.Sprintf("%s%d", gaugeUrl, gauge.Id))
 	if err != nil {
 		jww.CRITICAL.Println("Error fetching data for gauge", gauge.Id, ". Error was: ", err)
