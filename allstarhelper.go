@@ -45,9 +45,23 @@ func main() {
 		}(gaugeConf)
 	}
 
+	// Dispatch a thread to handle each of the wxunderground stations from the conf file
+	wxunderStationDone := make(chan bool)
+	for _, wxunderStationConf := range appconf.WXUnderground.Stations {
+		jww.DEBUG.Println("Dispatching Handler for WXUnderground station for conf:", wxunderStationConf)
+		go func(curConf WXUndergroundStationConf) {
+			stationRes := getTextForWXUnderStation(&curConf, &appconf) // Not copying appConf as we never change it... TODO: Make actually thread safe.
+			writeOutputTextFile(appconf.Settings.RelativeOutputDir, curConf.Id, stationRes)
+			wxunderStationDone <- true
+		}(wxunderStationConf)
+	}
+
 	// wait until all gauges and stations are done processing before we exit
 	for _ = range appconf.USGSRiver.Gauges {
 		<-gaugeDone
+	}
+	for _ = range appconf.WXUnderground.Stations {
+		<-wxunderStationDone
 	}
 
 	jww.INFO.Println("Done creating all files, exiting at", time.Now().Format("2006-01-02 15:04:05"))
