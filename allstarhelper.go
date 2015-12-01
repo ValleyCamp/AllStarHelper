@@ -6,11 +6,18 @@ import (
 	"io/ioutil"
 	"os"
 	"strconv"
+	"time"
 )
 
 func main() {
 	// Note at this point only WARN or above is actually logged to file, and ERROR or above to console.
 	jww.SetLogFile("allstarhelper.log")
+
+	// Set default logging verbosity. // TODO: add verbose flag to output more info
+	jww.SetLogThreshold(jww.LevelWarn)
+	jww.SetStdoutThreshold(jww.LevelError)
+
+	jww.INFO.Println("Starting run at", time.Now().Format("2006-01-02 15:04:05"))
 
 	// Read config file
 	appconf, err := getConfigFromFile()
@@ -43,7 +50,7 @@ func main() {
 		<-gaugeDone
 	}
 
-	jww.INFO.Println("Done creating all files, exiting!")
+	jww.INFO.Println("Done creating all files, exiting at", time.Now().Format("2006-01-02 15:04:05"))
 }
 
 // writeOutputFile writes {path}/{id}.txt with the contents of outStr, overwriting any existing file.

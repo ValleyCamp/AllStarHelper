@@ -5,6 +5,9 @@ import (
 	"os"
 )
 
+// Define structs for our configuration file, starting at the top level (whole-file)
+// Any errors should be passed back via the err object and handled by the caller
+
 type Configuration struct {
 	Settings      AppSettings         `json:"settings"`
 	USGSRiver     USGSRiverConfig     `json:"usgsriver"`
@@ -42,6 +45,8 @@ type WXUndergroundStationConf struct {
 type WeatherMossConfig struct {
 }
 
+// getConfigFromFile does what it says on the box and returns a Configuration object
+// representing the config file. TODO: Pass in the filename from parameters/default
 func getConfigFromFile() (Configuration, error) {
 	file, _ := os.Open("allstarhelper_config.json")
 	decoder := json.NewDecoder(file)
