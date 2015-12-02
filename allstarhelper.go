@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/happyalu/goflite"
+	//"github.com/joshproehl/goflite"
 	jww "github.com/spf13/jwalterweatherman"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"strconv"
 	"time"
 )
@@ -94,29 +95,39 @@ func writeOutputTextFile(path string, id string, outStr string) {
 // The wave file is generated using the flite TTS engine, using the voice file described by useVoice.
 // TODO: Handle creating some sort of fallback wave file in case we couldn't generate one? (So the AllStar user knows?)
 func writeOutputAudioFile(path string, id string, outStr string, useVoice string) {
-	// Create the wavform
-	wav, wgErr := goflite.TextToWave(outStr, useVoice)
-	if wgErr != nil {
-		jww.CRITICAL.Println("Could not synthesize wav for ", id, ": ", wgErr)
-		return
+	// For now we're going to do away with trying to build flite into the binary and just call the compiled flite binary on the system
+	args := []string{"-f", fmt.Sprintf("%s/%s.txt", path, id), "-o", fmt.Sprintf("%s/%s.wav", path, id), "-voice", useVoice}
+	res, err := exec.Command("flite", args...).Output()
+	if err != nil {
+		jww.CRITICAL.Println("Could not create wav file for", id, "-- Error was:", err)
 	}
+	jww.INFO.Println("flite returned the following for", id, ":", res)
 
-	// create the output writer
-	waveName := fmt.Sprintf("%s/%s.wav", path, id)
-	f, fErr := os.Create(waveName)
-	if fErr != nil {
-		jww.CRITICAL.Println("Could not create output wave file for", id)
-		return
-	}
-	defer f.Close() //No mater which branching path we take we want to make sure the handle closes
+	/*
+		// Create the wavform
+		wav, wgErr := goflite.TextToWave(outStr, useVoice)
+		if wgErr != nil {
+			jww.CRITICAL.Println("Could not synthesize wav for ", id, ": ", wgErr)
+			return
+		}
 
-	// write the output waveform to the file we've opened.
-	wwErr := wav.EncodeRIFF(f)
-	if wwErr != nil {
-		jww.CRITICAL.Println("Could not write wave for", id, ": ", wwErr)
-		return
-	}
-	f.Sync() // Just to be sure we're done writing
+		// create the output writer
+		waveName := fmt.Sprintf("%s/%s.wav", path, id)
+		f, fErr := os.Create(waveName)
+		if fErr != nil {
+			jww.CRITICAL.Println("Could not create output wave file for", id)
+			return
+		}
+		defer f.Close() //No mater which branching path we take we want to make sure the handle closes
 
-	// TODO: Convert from WAV to format used by Asterisk?
+		// write the output waveform to the file we've opened.
+		wwErr := wav.EncodeRIFF(f)
+		if wwErr != nil {
+			jww.CRITICAL.Println("Could not write wave for", id, ": ", wwErr)
+			return
+		}
+		f.Sync() // Just to be sure we're done writing
+
+		// TODO: Convert from WAV to format used by Asterisk?
+	*/
 }
