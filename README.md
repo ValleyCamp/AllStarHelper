@@ -19,7 +19,3 @@ For an example configuration file see allstarhelper_config.json
 * 900 -> "To list available weather stations press *920. To list available river gauging stations press *960"
 * 920 -> "Available weather stations are: ..." [Read list from configuration file]
 * 960 -> "Available river gauging stations are: ..." [Read list from configuration file]
-
-
-## TODO:
-* Write script to export our config file into AllStar link rpt.conf syntax for easy copy-paste
