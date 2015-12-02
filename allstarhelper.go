@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/happyalu/goflite"
 	jww "github.com/spf13/jwalterweatherman"
 	"io/ioutil"
 	"os"
@@ -41,6 +42,11 @@ func main() {
 			gaugeId := strconv.Itoa(curConf.Id)
 			gaugeRes := getTextForGauge(&curConf, &appconf) // Not copying appConf as we never change it... TODO: Make actually thread safe.
 			writeOutputTextFile(appconf.Settings.RelativeOutputDir, gaugeId, gaugeRes)
+
+			// We wrote the txt file for reference, but we're going to go ahead and just output directly to wave now.
+			writeOutputAudioFile(appconf.Settings.RelativeOutputDir, gaugeId, gaugeRes, "slt")
+
+			// Let function that spun up the goroutine know that one of the threads is done
 			gaugeDone <- true
 		}(gaugeConf)
 	}
@@ -52,6 +58,11 @@ func main() {
 		go func(curConf WXUndergroundStationConf) {
 			stationRes := getTextForWXUnderStation(&curConf, &appconf) // Not copying appConf as we never change it... TODO: Make actually thread safe.
 			writeOutputTextFile(appconf.Settings.RelativeOutputDir, curConf.Id, stationRes)
+
+			// We wrote the txt file for reference, but we're going to go ahead and just output directly to wave now.
+			writeOutputAudioFile(appconf.Settings.RelativeOutputDir, curConf.Id, stationRes, "slt")
+
+			// Let function that spun up the goroutine know that one of the threads is done
 			wxunderStationDone <- true
 		}(wxunderStationConf)
 	}
@@ -77,4 +88,35 @@ func writeOutputTextFile(path string, id string, outStr string) {
 	if err != nil {
 		jww.CRITICAL.Println("Could not write to output file for id:", id)
 	}
+}
+
+// writeOutputWaveFile writes {path}/{id}.wave with the contents of OutStr, overwriting any existing file.
+// The wave file is generated using the flite TTS engine, using the voice file described by useVoice.
+// TODO: Handle creating some sort of fallback wave file in case we couldn't generate one? (So the AllStar user knows?)
+func writeOutputAudioFile(path string, id string, outStr string, useVoice string) {
+	// Create the wavform
+	wav, wgErr := goflite.TextToWave(outStr, useVoice)
+	if wgErr != nil {
+		jww.CRITICAL.Println("Could not synthesize wav for ", id, ": ", wgErr)
+		return
+	}
+
+	// create the output writer
+	waveName := fmt.Sprintf("%s/%s.wav", path, id)
+	f, fErr := os.Create(waveName)
+	if fErr != nil {
+		jww.CRITICAL.Println("Could not create output wave file for", id)
+		return
+	}
+	defer f.Close() //No mater which branching path we take we want to make sure the handle closes
+
+	// write the output waveform to the file we've opened.
+	wwErr := wav.EncodeRIFF(f)
+	if wwErr != nil {
+		jww.CRITICAL.Println("Could not write wave for", id, ": ", wwErr)
+		return
+	}
+	f.Sync() // Just to be sure we're done writing
+
+	// TODO: Convert from WAV to format used by Asterisk?
 }
