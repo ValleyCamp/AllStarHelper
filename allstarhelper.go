@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	//"github.com/joshproehl/goflite"
+	"flag"
 	jww "github.com/spf13/jwalterweatherman"
 	"io/ioutil"
 	"os"
@@ -12,12 +13,20 @@ import (
 )
 
 func main() {
+	flgVerbose := flag.Bool("verbose", false, "Output additional debugging information to both STDOUT and the log file")
+	flag.Parse()
+
 	// Note at this point only WARN or above is actually logged to file, and ERROR or above to console.
 	jww.SetLogFile("allstarhelper.log")
 
-	// Set default logging verbosity. // TODO: add verbose flag to output more info
-	jww.SetLogThreshold(jww.LevelWarn)
-	jww.SetStdoutThreshold(jww.LevelError)
+	if *flgVerbose {
+		jww.SetLogThreshold(jww.LevelDebug)
+		jww.SetStdoutThreshold(jww.LevelInfo)
+	} else {
+		// Set default logging verbosity.
+		jww.SetLogThreshold(jww.LevelWarn)
+		jww.SetStdoutThreshold(jww.LevelError)
+	}
 
 	jww.INFO.Println("Starting run at", time.Now().Format("2006-01-02 15:04:05"))
 
