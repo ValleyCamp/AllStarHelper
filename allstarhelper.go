@@ -14,6 +14,7 @@ import (
 
 func main() {
 	flgVerbose := flag.Bool("verbose", false, "Output additional debugging information to both STDOUT and the log file")
+	flgWriteConf := flag.Bool("writeconf", false, "Write out configuration file to be imported into app_rpt.conf and exit")
 	flag.Parse()
 
 	// Note at this point only WARN or above is actually logged to file, and ERROR or above to console.
@@ -42,6 +43,12 @@ func main() {
 	if err != nil {
 		jww.FATAL.Println("could not create output directory. Permissions issue?")
 		os.Exit(0)
+	}
+
+	if *flgWriteConf {
+		// write out the allstarhelper_cmdTree.conf file
+		writeOutputConfFileForConfiguration(appconf)
+		return
 	}
 
 	// Dispatch a thread to handle each of the gauges from the conf file

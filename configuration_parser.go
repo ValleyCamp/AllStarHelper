@@ -15,31 +15,34 @@ type Configuration struct {
 	WeatherMoss   WeatherMossConfig   `json:"weathermoss"`
 }
 
+// Type alias for "*xx" command codes
+type CmdCode string
+
 type AppSettings struct {
 	RelativeOutputDir string `json:"relative_outputdir"`
 }
 
 type USGSRiverConfig struct {
 	Gauges       []USGSGaugeConf `json:"gauges"`
-	CmdCodeAbout string          `json:"cmdCodeAbout"`
+	CmdCodeAbout CmdCode         `json:"cmdCodeAbout"`
 }
 
 type USGSGaugeConf struct {
-	Id           int    `json:"id"`
-	FriendlyName string `json:"friendlyName"`
-	CmdCode      string `json:"cmdCode"`
+	Id           int     `json:"id"`
+	FriendlyName string  `json:"friendlyName"`
+	CmdCode      CmdCode `json:"cmdCode"`
 }
 
 type WXUndergroundConfig struct {
 	ApiKey       string                     `json:"api_key"`
-	CmdCodeAbout string                     `json:"cmdCodeAbout"`
+	CmdCodeAbout CmdCode                    `json:"cmdCodeAbout"`
 	Stations     []WXUndergroundStationConf `json:"stations"`
 }
 
 type WXUndergroundStationConf struct {
-	Id           string `json:"id"`
-	FriendlyName string `json:"friendlyName"`
-	CmdCode      string `json:"cmdCode"`
+	Id           string  `json:"id"`
+	FriendlyName string  `json:"friendlyName"`
+	CmdCode      CmdCode `json:"cmdCode"`
 }
 
 type WeatherMossConfig struct {
@@ -54,4 +57,15 @@ func getConfigFromFile() (Configuration, error) {
 	err := decoder.Decode(&configuration)
 
 	return configuration, err
+}
+
+// Command codes in the JSON are strings like *900. This allows the reader of the JSON file to
+// understand what's going on visually, but when it comes to generating conf files we don't
+// need the * in front...
+func (c CmdCode) GetForConf() string {
+	if c[0] == '*' {
+		return string(c[1:len(c)])
+	} else {
+		return string(c)
+	}
 }
