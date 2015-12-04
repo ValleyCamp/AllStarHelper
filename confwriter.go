@@ -22,12 +22,12 @@ func writeOutputConfFileForConfiguration(c Configuration) {
 	defer f.Close()
 
 	for _, gaugeConf := range c.USGSRiver.Gauges {
-		l := fmt.Sprintf("%s,playback,/etc/asterisk/custom/allstarhelper_output/%d\n", gaugeConf.CmdCode.GetForConf(), gaugeConf.Id)
+		l := fmt.Sprintf("%s=playback,/etc/asterisk/custom/allstarhelper_output/%d\n", gaugeConf.CmdCode.GetForConf(), gaugeConf.Id)
 		_, err = io.WriteString(f, l)
 	}
 
 	for _, wxunderStationConf := range c.WXUnderground.Stations {
-		l := fmt.Sprintf("%s,playback,/etc/asterisk/custom/allstarhelper_output/%s\n", wxunderStationConf.CmdCode.GetForConf(), wxunderStationConf.Id)
+		l := fmt.Sprintf("%s=playback,/etc/asterisk/custom/allstarhelper_output/%s\n", wxunderStationConf.CmdCode.GetForConf(), wxunderStationConf.Id)
 		_, err = io.WriteString(f, l)
 	}
 
